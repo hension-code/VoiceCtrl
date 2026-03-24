@@ -15,6 +15,7 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
     private readonly ColiAsrService _asr = new();
     private readonly AppSettingsService _settingsService = new();
     private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly System.Windows.Forms.Timer _cutoffTimer = new();
 
     private static bool IsZh => System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.OrdinalIgnoreCase);
 
@@ -43,6 +44,10 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
         _hotkey = new GlobalKeyboardHook();
         _hotkey.ToggleRequested += OnToggleRequested;
         _hotkey.Start();
+
+        _cutoffTimer.Interval = 5 * 60 * 1000;
+        _cutoffTimer.Tick += OnCutoffTimerTick;
+
         ApplyMenuChecks();
         UpdateUiState(IsZh ? "VoiceCtrl - 空闲" : "VoiceCtrl - Idle");
     }
@@ -51,6 +56,7 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
     {
         if (disposing)
         {
+            _cutoffTimer.Dispose();
             _hotkey.ToggleRequested -= OnToggleRequested;
             _hotkey.Dispose();
             _audioRecorder.Dispose();
@@ -135,6 +141,16 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
         await ToggleAsync();
     }
 
+    private async void OnCutoffTimerTick(object? sender, EventArgs e)
+    {
+        _cutoffTimer.Stop();
+        if (_isRecording)
+        {
+            ShowInfo("VoiceCtrl", IsZh ? "已达5分钟最大时长，正自动截断转写" : "Max 5-minute duration reached, transcribing...");
+            await ToggleAsync();
+        }
+    }
+
     private async Task ToggleAsync()
     {
         await _gate.WaitAsync();
@@ -168,12 +184,14 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
             _recordingFile = Path.Combine(Path.GetTempPath(), "VoiceCtrl", $"{Guid.NewGuid():N}.wav");
             _audioRecorder.Start(_recordingFile);
             _isRecording = true;
+            _cutoffTimer.Start();
             UpdateUiState(IsZh ? "VoiceCtrl - 录音中" : "VoiceCtrl - Recording");
             PlayCue(Cue.Start);
             ShowInfo("VoiceCtrl", IsZh ? "录音已开始" : "Recording started");
         }
         catch (Exception ex)
         {
+            _cutoffTimer.Stop();
             _isRecording = false;
             _recordingFile = null;
             UpdateUiState(IsZh ? "VoiceCtrl - 错误" : "VoiceCtrl - Error");
@@ -185,6 +203,7 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
     {
         try
         {
+            _cutoffTimer.Stop();
             _audioRecorder.Stop();
             _isRecording = false;
             _isTranscribing = true;
