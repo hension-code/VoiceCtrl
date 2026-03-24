@@ -146,8 +146,31 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
         _cutoffTimer.Stop();
         if (_isRecording)
         {
-            ShowInfo("VoiceCtrl", IsZh ? "已达5分钟最大时长，正自动截断转写" : "Max 5-minute duration reached, transcribing...");
-            await ToggleAsync();
+            ShowInfo("VoiceCtrl", IsZh ? "已达5分钟最大时长，已自动抛弃本次录音" : "Max 5-minute duration reached, recording discarded automatically");
+            await AbortRecordingAsync();
+        }
+    }
+
+    private async Task AbortRecordingAsync()
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            if (!_isRecording)
+            {
+                return;
+            }
+
+            _cutoffTimer.Stop();
+            _audioRecorder.Stop();
+            _isRecording = false;
+            CleanupRecordingFile();
+            PlayCue(Cue.Stop);
+            UpdateUiState(IsZh ? "VoiceCtrl - 空闲" : "VoiceCtrl - Idle");
+        }
+        finally
+        {
+            _gate.Release();
         }
     }
 
