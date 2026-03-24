@@ -44,8 +44,10 @@ npm i -g @marswave/coli
 
 - Double-click `Ctrl` once: Start recording (triggers a system sound and updates tray-icon text).
 - Double-click `Ctrl` again: Stop the recording and start local automated transcription.
-- 5-Minute Safety Cutoff: In case the recording isn't stopped properly, the system automatically abandons the buffer 5 minutes later to save SSD storage from exhausting itself. 
 - Tray Right-Click Context Menu: Manage sound cues, toggle auto-pasting behavior, or even manually choose a past `.wav` file you'd like to explicitly transcribe onto the clipboard.
+
+> 🛡️ **5-Minute Safety Cutoff Guard**  
+> Because it relies on global keyboard shortcuts, users might occasionally **forget to stop recording**. To counter this, VoiceCtrl for Windows features an exclusive safety fail-safe mechanism: if a single recording exceeds 5 minutes, in order to protect your drive from being flooded by massive audio queues and guard the transcription engine against out-of-memory (OOM) crashes, the system will **automatically kill and discard** the recording session.
 
 ---
 
