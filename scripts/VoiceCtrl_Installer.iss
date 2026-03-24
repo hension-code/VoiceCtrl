@@ -44,3 +44,28 @@ Name: "{userstartup}\VoiceCtrl"; Filename: "{app}\VoiceCtrl.exe"; Tasks: startup
 [Run]
 ; 安装完成后允许立即运行
 Filename: "{app}\VoiceCtrl.exe"; Description: "启动 VoiceCtrl"; Flags: nowait postinstall skipifsilent
+
+[Code]
+// The CurStepChanged is called right before actual files get copied (ssInstall)
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+begin
+  if CurStep = ssInstall then
+  begin
+    // Forcefully kill any running VoiceCtrl.exe to release file locks
+    Exec('cmd.exe', '/c taskkill /f /im VoiceCtrl.exe /t', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec('cmd.exe', '/c taskkill /f /im TypeNo.Windows.exe /t', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  ResultCode: Integer;
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    Exec('cmd.exe', '/c taskkill /f /im VoiceCtrl.exe /t', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec('cmd.exe', '/c taskkill /f /im TypeNo.Windows.exe /t', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+end;
