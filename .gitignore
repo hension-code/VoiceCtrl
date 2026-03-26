@@ -1,45 +1,51 @@
 # ==============================================================================
 # Visual Studio / .NET Ignored Files
 # ==============================================================================
-
-## Build Results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
 [Bb]in/
 [Oo]bj/
 [Oo]ut/
 [Oo]utput/
-*.[Oo]utput/
-
-## User-specific files
+[Rr]elease/
+[Rr]eleases/
+[Dd]ebug/
+[Dd]ebugPublic/
+publish/
 *.user
+*.suo
 *.userosscache
 *.sln.docstates
-*.suo
-
-## VS IDE
 .vs/
 .vscode/
 
-## Dependencies
+# ==============================================================================
+# Node.js / Electron
+# ==============================================================================
 node_modules/
-packages/
-
-## OS specific
-.DS_Store
-Thumbs.db
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+dist-*
 
 # ==============================================================================
-# VoiceCtrl Installer Artifacts & Caches
+# VoiceCtrl Specific (ASR Models & Audio)
+# ==============================================================================
+# 不要提交语音模型文件（通常很大）
+*.onnx
+*.onnx_data
+*.bin
+*.model
+models/
+recordings/
+temp_audio/
+
+# ==============================================================================
+# Installer & OS
 # ==============================================================================
 iscc_setup.exe
 Output/
 *.iss.bak
+.DS_Store
+Thumbs.db
+desktop.ini

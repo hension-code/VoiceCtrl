@@ -12,29 +12,30 @@ Core mechanics retained from the original:
 - Local transcription: `coli asr <audio-file>`
 - Output: Supports automatic paste or copying to clipboard only
 
-## Method 1: Direct Download
+There are two editions available for Windows:
 
-For most users, the easiest way is to download the latest executable version directly:
+- 🚀 **VoiceCtrl_Electron (Recommended)**: Built with Electron, features a modern UI and **comes with the ASR engine pre-integrated. No Node.js or coli installation required.**
+- `VoiceCtrl`: C# / WinForms edition (Classic, lightweight, requires manual `coli` setup).
 
-- Follow the link to the [Releases Page](https://github.com/hension-code/VoiceCtrl/releases)
-- Download the latest `.exe` package for Windows based on your preference:
-  - **Installer Version (Recommended)**: Download `VoiceCtrl_Installer_v1.0.exe` for an assisted wizard installation (supports running on startup).
-  - **Portable Version**: Download `VoiceCtrl_Portable_v1.0.exe` to skip installation entirely. Just place it anywhere and run it.
+## 📥 Download
 
-### If Windows Prompts "Windows protected your PC" (SmartScreen Block)
+Download the latest version from the **[Releases Page](https://github.com/hension-code/VoiceCtrl/releases)**. There are three types of packages available:
 
-Because the current release is not backed by an expensive Windows Code Signing Certificate, Windows Defender SmartScreen might block the application upon its first launch.
+| Filename Prefix | Description | Dependencies |
+| :--- | :--- | :--- |
+| **`VoiceCtrl-Electron` (Recommended)** | Ready to use with a modern UI. | **Pre-bundled** ASR. No extra setup. |
+| **`VoiceCtrl_Installer`** | Standard installer for C# edition. | Requires manual `coli` setup. |
+| **`VoiceCtrl_Portable`** | Single-file portable edition for C#. | Requires manual `coli` setup. |
 
-To seamlessly bypass it, please perform the following:
+### ⚠️ First Run Note (Electron Edition Only)
+If you are using the **Electron version**, the app will automatically download the speech model (~40MB) from HuggingFace/ModelScope upon the first transcription attempt. Please ensure a stable network connection.
 
-1. On the blue block-screen popup, click the text **"More info"**.
-2. Afterward, a hidden button named **"Run anyway"** will appear on the bottom right. Click it.
+> [!TIP]
+> **About Security (SmartScreen)**: As the app is not code-signed, Windows might block it. Click "More info" -> "Run anyway" to proceed.
 
-Subsequent launches will be unhindered natively without any further prompt. VoiceCtrl might support formal Microsoft Code Signage in future releases.
+## Developer ASR Installation (Optional)
 
-## Install Speech Recognition Engine
-
-VoiceCtrl relies heavily on the `coli` client library to perform accurate local speech transcription. You'll first need to install [Node.js](https://nodejs.org/), then issue the following within any terminal (PowerShell or CMD):
+If you are using the C# version or want to use ASR via CLI, install it via (requires Node.js):
 
 ```powershell
 npm i -g @marswave/coli
@@ -56,11 +57,24 @@ npm i -g @marswave/coli
 If you're eager to build/modify the code on your end, ensure you've installed [.NET 8 SDK](https://dotnet.microsoft.com/download), then you can do the following:
 
 ```powershell
-# Quietly run natively in the background tray:
-cd Windows\VoiceCtrl
+# C# edition: run quietly in the tray
+cd VoiceCtrl
 dotnet run -c Release
 
-# Create a self-contained portable distribution natively:
-cd Windows\scripts
+# C# edition: create a self-contained distribution
+cd ..\scripts
 .\build.ps1
+```
+
+### Electron Edition (Dev & Build)
+
+```powershell
+cd VoiceCtrl_Electron
+npm install
+
+# Development run
+npm start
+
+# Build (Windows portable)
+npm run build
 ```

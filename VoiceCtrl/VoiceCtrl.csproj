@@ -17,4 +17,8 @@
   <ItemGroup>
     <EmbeddedResource Include="VoiceCtrl.ico" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Assets\asr-worker.cjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

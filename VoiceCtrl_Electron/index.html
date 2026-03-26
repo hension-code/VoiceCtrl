@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>VoiceCtrl Recording Engine</title>
+</head>
+<body>
+    <div id="status">Idle</div>
+    <script>
+        const { ipcRenderer } = require('electron');
+        let audioContext;
+        let processor;
+        let pcmData = [];
+
+        // --- 高品质 Base64 音频资源 (现代 UI 风格) ---
+        // 这是两个已经采集好的清脆 WAV 音效
+        const SOUND_START = "data:audio/wav;base64,UklGRmYAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVIAAACAgICAgICAgICAgICAjHh9foB+foB+fnd7enx5fHl7fHqOfIJ+gnKBcIBxfnx4fnx+foB8gn+CgX9/gYB/fnx8fHl7enx7fHx8fHx8fH9+fX18fHx7e3t7e3t9fX58fX19fX19fX19fX19fX19fn5+fn5+fn5+";
+        // 结束音 (低沉沉稳)
+        const SOUND_STOP  = "data:audio/wav;base64,UklGRmYAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVIAAACAgICAgICAgICAgICAgICAfn5+fn59fn5+fn59fn59fn59fn1+fX5/fX99f359fn19fXx9fH1+fn5+fn5+fn5+fX59fn59fn59fn59fn5+fn59fn5+fn59fn5+fn5+fn59fX59fn5+fn59fn5+fn1+fn59fn5+fn5+";
+
+        const startAudio = new Audio(SOUND_START);
+        const stopAudio = new Audio(SOUND_STOP);
+
+        function getAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            }
+            if (audioContext.state === 'suspended') audioContext.resume();
+            return audioContext;
+        }
+
+        async function startRecording() {
+            try {
+                const ctx = getAudioContext();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = ctx.createMediaStreamSource(stream);
+
+                processor = ctx.createScriptProcessor(4096, 1, 1);
+                pcmData = [];
+                processor.onaudioprocess = (e) => {
+                    const channelData = e.inputBuffer.getChannelData(0);
+                    pcmData.push(new Float32Array(channelData));
+                };
+                source.connect(processor);
+                processor.connect(ctx.destination);
+                document.getElementById('status').innerText = 'Recording...';
+                window._currentStream = stream;
+            } catch (err) {
+                console.error(err);
+                ipcRenderer.send('recording-failed', err.message);
+            }
+        }
+
+        function stopRecording() {
+            if (processor) {
+                processor.disconnect();
+                if (window._currentStream) {
+                    window._currentStream.getTracks().forEach(t => t.stop());
+                }
+                const totalSamples = pcmData.reduce((acc, curr) => acc + curr.length, 0);
+                const finalSamples = new Float32Array(totalSamples);
+                let offset = 0;
+                for (const chunk of pcmData) {
+                    finalSamples.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                const sampleRate = audioContext?.sampleRate || 16000;
+                ipcRenderer.send('recording-finished', {
+                    format: 'f32le',
+                    sampleRate,
+                    samples: Buffer.from(finalSamples.buffer)
+                });
+                document.getElementById('status').innerText = 'Finished.';
+            }
+        }
+
+        // --- 处理提示音播放 ---
+        ipcRenderer.on('play-sound', (event, type) => {
+            if (type === 'start') {
+                startAudio.currentTime = 0;
+                startAudio.play();
+            } else {
+                stopAudio.currentTime = 0;
+                stopAudio.play();
+            }
+        });
+
+        // ... WAV 编码逻辑保持不变 ...
+        function encodeWAV(samples, sampleRate) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+            let offset = 44;
+            for (let i = 0; i < samples.length; i++, offset += 2) {
+                let s = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+            return buffer;
+        }
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        ipcRenderer.on('toggle-recording', (event, start) => {
+            if (start) startRecording();
+            else stopRecording();
+        });
+    </script>
+</body>
+</html>

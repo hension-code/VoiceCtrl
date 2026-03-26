@@ -1,0 +1,43 @@
+{
+  "name": "voicectrl-electron",
+  "version": "1.0.0",
+  "description": "VoiceCtrl - Windows Alpha Port (Electron)",
+  "main": "main.js",
+  "type": "module",
+  "productName": "VoiceCtrl",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "@marswave/coli": "^0.0.13",
+    "electron-serve": "^2.1.1",
+    "execa": "^9.6.1"
+  },
+  "devDependencies": {
+    "electron": "^34.3.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.voicectrl.app",
+    "productName": "VoiceCtrl",
+    "artifactName": "VoiceCtrl-Electron-${version}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "icon.ico",
+      "target": [
+        "portable"
+      ]
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/node-global-key-listener/**"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/sherpa-onnx-node/bin/*"
+    ]
+  }
+}

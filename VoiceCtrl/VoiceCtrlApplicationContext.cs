@@ -48,6 +48,7 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
         _cutoffTimer.Interval = 5 * 60 * 1000;
         _cutoffTimer.Tick += OnCutoffTimerTick;
 
+        _ = _asr.PreloadAsync();
         ApplyMenuChecks();
         UpdateUiState(IsZh ? "VoiceCtrl - 空闲" : "VoiceCtrl - Idle");
     }
@@ -60,6 +61,7 @@ internal sealed class VoiceCtrlApplicationContext : ApplicationContext
             _hotkey.ToggleRequested -= OnToggleRequested;
             _hotkey.Dispose();
             _audioRecorder.Dispose();
+            _asr.Dispose();
             _notifyIcon.Visible = false;
             _notifyIcon.Dispose();
             _gate.Dispose();
