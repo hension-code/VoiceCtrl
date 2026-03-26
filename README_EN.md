@@ -27,8 +27,8 @@ Download the latest version from the **[Releases Page](https://github.com/hensio
 | **`VoiceCtrl_Installer`** | Standard installer for C# edition. | Requires manual `coli` setup. |
 | **`VoiceCtrl_Portable`** | Single-file portable edition for C#. | Requires manual `coli` setup. |
 
-### ⚠️ First Run Note (Electron Edition Only)
-If you are using the **Electron version**, the app will automatically download the speech model (~40MB) from HuggingFace/ModelScope upon the first transcription attempt. Please ensure a stable network connection.
+### ⚠️ First Run Note
+Regardless of the version you choose, the app will automatically download the speech recognition model (~40MB) from HuggingFace/ModelScope upon the first transcription attempt. Please ensure a stable network connection.
 
 > [!TIP]
 > **About Security (SmartScreen)**: As the app is not code-signed, Windows might block it. Click "More info" -> "Run anyway" to proceed.
